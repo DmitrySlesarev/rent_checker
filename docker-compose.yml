@@ -9,11 +9,17 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rent_user -d rent_checker"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   web:
     build: .
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg2://rent_user:rent_pass@db:5432/rent_checker
     ports:

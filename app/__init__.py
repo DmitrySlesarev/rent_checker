@@ -1,10 +1,24 @@
 import os
+import time
 from datetime import date
 
 from flask import Flask, render_template
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 
 from .models import Payment, Room, db
 from .seed import seed_demo_data
+
+
+def _wait_for_database(max_attempts: int = 20, delay_seconds: float = 1.0) -> None:
+    for attempt in range(1, max_attempts + 1):
+        try:
+            db.session.execute(text("SELECT 1"))
+            return
+        except OperationalError:
+            if attempt == max_attempts:
+                raise
+            time.sleep(delay_seconds)
 
 
 def create_app():
@@ -18,6 +32,7 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
+        _wait_for_database()
         db.create_all()
         seed_demo_data()
 
