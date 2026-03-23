@@ -67,3 +67,24 @@ def test_payment_history_dropdown_opens(app_server):
         assert first_list.is_visible()
         assert first_list.locator("li").count() >= 3
         browser.close()
+
+
+def test_confirm_payment_updates_room_status(app_server):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(app_server)
+
+        room_card = page.locator('.room-card[data-room="102"]').first
+        room_id = room_card.get_attribute("data-room-id")
+        assert room_id is not None
+        assert "status-current_unpaid" in (room_card.get_attribute("class") or "")
+
+        page.select_option("#room_id", room_id)
+        page.fill("#amount", "1450.00")
+        page.click("button:has-text('Confirm')")
+        page.wait_for_load_state("networkidle")
+
+        updated_room_card = page.locator('.room-card[data-room="102"]').first
+        assert "status-paid" in (updated_room_card.get_attribute("class") or "")
+        browser.close()

@@ -8,9 +8,27 @@
   </head>
   <body>
     <main class="container">
-      <section class="header">
-        <h1>Rent Checker</h1>
-        <p>Single-page prototype for building rent health</p>
+      <section class="top-layout">
+        <section class="header">
+          <h1>Rent Checker</h1>
+          <p>Single-page prototype for building rent health</p>
+        </section>
+        <section class="payment-form-panel" aria-label="Enter room payment">
+          <h3>Enter payment</h3>
+          <form method="post" action="{{ url_for('confirm_payment') }}" class="payment-form">
+            <label for="room_id">Room</label>
+            <select id="room_id" name="room_id" required>
+              {% for room in rooms %}
+              <option value="{{ room.id }}">Room {{ room.number }}</option>
+              {% endfor %}
+            </select>
+
+            <label for="amount">Amount</label>
+            <input id="amount" name="amount" type="number" min="1" step="0.01" value="1000.00" required />
+
+            <button type="submit">Confirm</button>
+          </form>
+        </section>
       </section>
 
       <section class="legend" aria-label="Status legend">
@@ -21,7 +39,11 @@
 
       <section class="building-grid" aria-label="Building plan">
         {% for card in room_cards %}
-        <article class="room-card status-{{ card.status }}" data-room="{{ card.room.number }}">
+        <article
+          class="room-card status-{{ card.status }}"
+          data-room="{{ card.room.number }}"
+          data-room-id="{{ card.room.id }}"
+        >
           <div class="room-top">
             <h2>Room {{ card.room.number }}</h2>
             <span class="status-pill">{{ card.status.replace('_', ' ').title() }}</span>

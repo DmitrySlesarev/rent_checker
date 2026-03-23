@@ -2,7 +2,7 @@ import os
 import time
 from datetime import date
 
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, request, url_for
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
@@ -56,6 +56,35 @@ def create_app():
                 }
             )
 
-        return render_template("index.html", room_cards=room_cards, today=today)
+        return render_template("index.html", room_cards=room_cards, today=today, rooms=rooms)
+
+    @app.post("/payments/confirm")
+    def confirm_payment():
+        room_id = request.form.get("room_id", type=int)
+        amount = request.form.get("amount", type=float)
+
+        if room_id is None or amount is None:
+            return redirect(url_for("index"))
+
+        today = date.today()
+        current_month_start = date(today.year, today.month, 1)
+        due_date = date(today.year, today.month, 7)
+
+        payment = Payment.query.filter_by(room_id=room_id, month_start=current_month_start).first()
+        if payment is None:
+            payment = Payment(
+                room_id=room_id,
+                month_start=current_month_start,
+                due_date=due_date,
+                amount=amount,
+                paid_at=today,
+            )
+            db.session.add(payment)
+        else:
+            payment.amount = amount
+            payment.paid_at = today
+
+        db.session.commit()
+        return redirect(url_for("index"))
 
     return app
