@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: rent_checker
+      POSTGRES_USER: rent_user
+      POSTGRES_PASSWORD: rent_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+psycopg2://rent_user:rent_pass@db:5432/rent_checker
+    ports:
+      - "5000:5000"
+
+volumes:
+  postgres_data:

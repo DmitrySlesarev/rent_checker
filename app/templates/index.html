@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rent Checker Prototype</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="header">
+        <h1>Rent Checker</h1>
+        <p>Single-page prototype for building rent health</p>
+      </section>
+
+      <section class="legend" aria-label="Status legend">
+        <div class="legend-item"><span class="dot paid"></span> Paid for current month</div>
+        <div class="legend-item"><span class="dot current_unpaid"></span> Current month unpaid</div>
+        <div class="legend-item"><span class="dot overdue"></span> Overdue payment</div>
+      </section>
+
+      <section class="building-grid" aria-label="Building plan">
+        {% for card in room_cards %}
+        <article class="room-card status-{{ card.status }}" data-room="{{ card.room.number }}">
+          <div class="room-top">
+            <h2>Room {{ card.room.number }}</h2>
+            <span class="status-pill">{{ card.status.replace('_', ' ').title() }}</span>
+          </div>
+          <details>
+            <summary>Payment history</summary>
+            <ul class="history-list">
+              {% for payment in card.payments %}
+              <li>
+                <span>{{ payment.month_start.strftime('%b %Y') }}</span>
+                <span>${{ "%.2f"|format(payment.amount) }}</span>
+                {% if payment.paid_at %}
+                <span class="tag ok">Paid {{ payment.paid_at.strftime('%d %b') }}</span>
+                {% elif payment.due_date < today %}
+                <span class="tag bad">Overdue since {{ payment.due_date.strftime('%d %b') }}</span>
+                {% else %}
+                <span class="tag warn">Unpaid, due {{ payment.due_date.strftime('%d %b') }}</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </details>
+        </article>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>
